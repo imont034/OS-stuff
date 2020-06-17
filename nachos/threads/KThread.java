@@ -273,10 +273,33 @@ public class KThread {
      * thread.
      */
     public void join() {
-	Lib.debug(dbgThread, "Joining to thread: " + toString());
 
-	Lib.assertTrue(this != currentThread);
+	    Lib.debug(dbgThread, "Joining to thread: " + toString());
+	    Lib.assertTrue(this != currentThread);
+               
+        //Depict current status of this 
+        boolean current_status = Machine.interrupt().disable(); 
+       
+        //We iterate while the thread is not finished, if it is, return.  
+        if (this.status != statusFinished){
 
+            //Instantiate a queue to give the lock of this to transfer priority of this
+            ThreadQueue wait = ThreadedKernel.scheduler.newThreadQueue(true); 
+            wait.acquire(this);
+
+            //Wait for current thread, adding it to the queue 
+            wait.waitForAccess(currentThread);
+
+            //Yield this thread until the this is finished 
+            while(this.status != statusFinished) {
+                KThread.yield();
+                //if this.status == statusBlocked throw exception? If another 
+                //thread calls joins? or will KThread.yield() also handle that?  
+            }
+        } else return; 
+
+        //Restore the machine to where it was previously 
+        Machine.interrupt().restore(current_status);
     }
 
     /**
@@ -292,7 +315,7 @@ public class KThread {
 	Lib.assertTrue(idleThread == null);
 	
 	idleThread = new KThread(new Runnable() {
-	    public void run() { while (true) yield(); }
+	    public void run() { while (true) KThread.yield(); }
 	});
 	idleThread.setName("idle");
 
