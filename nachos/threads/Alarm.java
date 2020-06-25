@@ -72,6 +72,7 @@ public class Alarm
 
     private class threadTime implements Comparable<threadTime> {
         public threadTime(){}
+        
         public threadTime(long wakeTime, Kthread thread){
             this.wakeTime = wakeTime; 
             this.thread = thread; 
