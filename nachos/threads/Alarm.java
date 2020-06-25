@@ -1,12 +1,13 @@
 package nachos.threads;
-
+import java.util.PriorityQueue;
 import nachos.machine.*;
 
 /**
  * Uses the hardware timer to provide preemption, and to allow threads to sleep
  * until a certain time.
  */
-public class Alarm {
+public class Alarm 
+{
     /**
      * Allocate a new Alarm. Set the machine's timer interrupt handler to this
      * alarm's callback.
@@ -14,10 +15,11 @@ public class Alarm {
      * <p><b>Note</b>: Nachos will not function correctly with more than one
      * alarm.
      */
-    public Alarm() {
-	Machine.timer().setInterruptHandler(new Runnable() {
-		public void run() { timerInterrupt(); }
-	    });
+    public Alarm() 
+    {
+	    Machine.timer().setInterruptHandler(new Runnable() {
+		    public void run() { timerInterrupt(); }
+	     });
     }
 
     /**
@@ -27,7 +29,14 @@ public class Alarm {
      * that should be run.
      */
     public void timerInterrupt() {
-	KThread.currentThread().yield();
+        long currentTime = Machine.timer().getTime(); 
+        boolean current_status = Machine.interrupt().disable(); 
+        while(!wait.isEmpty() && wait.peek().wakeTime <= currentTime){
+            threadTime thread_time = wait.poll();
+            if (thread_time.thread!=null) thread_time.thread.ready();
+        }
+        KThread.currentThread().yield();
+        Machine.interrupt().restore(current_status); 
     }
 
     /**
@@ -45,9 +54,42 @@ public class Alarm {
      * @see	nachos.machine.Timer#getTime()
      */
     public void waitUntil(long x) {
-	// for now, cheat just to get something working (busy waiting is bad)
-	long wakeTime = Machine.timer().getTime() + x;
-	while (wakeTime > Machine.timer().getTime())
-	    KThread.yield();
+	    if (x < 0) return; //Cannot wait on negative values 
+
+        // for now, cheat just to get something working (busy waiting is bad)
+    	long wakeTime = Machine.timer().getTime() + x;
+	
+         //Entering a critical state, so we disable the interrupt, and return 
+        //the current state prior. 
+        boolean current_status = Machine.interrupt().disable(); 
+    
+        KThread current = KThread.currentThread(); 
+        threadTime thread_time = new threadTime(current, wakeTime); 
+        wait.add(thread_time); 
+        current.sleep(); 
+        Machine.interrupt().restore(current_status); 
     }
+
+    private class threadTime implements Comparable<threadTime> {
+        public threadTime(){}
+        public threadTime(long wakeTime, Kthread thread){
+            this.wakeTime = wakeTime; 
+            this.thread = thread; 
+        }
+        public int compareTo(threadTime threadTime) throws NullPointerException{
+            if (threadtime == null) throw NullPointerException; 
+            if(this.wakeTime > threadTime.wakeTime) return 1; 
+            else if (this.wakeTime < threadTime.wakeTime) return -1; 
+            else return 0; 
+        }
+
+        public long getWakeTime(){ return this.wakeTime; }
+        public KThread getThread() { return this.thread; }
+        public void setWakeTime(long wakeTime) { this.wakeTime = wakeTime;}
+        public void setThread(KThread thread) { this.thread = thread; }
+        
+        private KThread thread = null; 
+        private long wakeTime = 0; 
+    }
+    private PriorityQueue<threadTime> wait = new PriorityQueue<threadTime>(); 
 }
