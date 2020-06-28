@@ -279,10 +279,11 @@ public class KThread {
                
         //Depict current status of this 
         boolean current_status = Machine.interrupt().disable(); 
-       
+        
+        
         //We iterate while the thread is not finished, if it is, return.  
         if (this.status != statusFinished){
-
+            /*
             //Instantiate a queue to give the lock of this to transfer priority of this
             ThreadQueue wait = ThreadedKernel.scheduler.newThreadQueue(true); 
             wait.acquire(this);
@@ -291,11 +292,9 @@ public class KThread {
             wait.waitForAccess(currentThread);
 
             //Yield this thread until the this is finished 
-            while(this.status != statusFinished) {
-                KThread.yield();
-                //if this.status == statusBlocked throw exception? If another 
-                //thread calls joins? or will KThread.yield() also handle that?  
-            }
+            */
+            while(this.status != statusFinished) KThread.yield();
+            
         } else return; 
 
         //Restore the machine to where it was previously 

@@ -63,16 +63,14 @@ public class Alarm
         //the current state prior. 
         boolean current_status = Machine.interrupt().disable(); 
     
-        KThread current = KThread.currentThread(); 
-        threadTime thread_time = new threadTime(current, wakeTime); 
+        threadTime thread_time = new threadTime(KThread.currentThread, wakeTime); 
         wait.add(thread_time); 
-        current.sleep(); 
+        thread_time.thread.current.sleep(); 
         Machine.interrupt().restore(current_status); 
     }
 
     private class threadTime implements Comparable<threadTime> {
         public threadTime(){}
-        
         public threadTime(long wakeTime, Kthread thread){
             this.wakeTime = wakeTime; 
             this.thread = thread; 

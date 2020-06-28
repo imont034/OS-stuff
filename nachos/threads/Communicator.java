@@ -14,6 +14,10 @@ public class Communicator {
      * Allocate a new communicator.
      */
     public Communicator() {
+        communicationLock = new Lock(); 
+        speakCondition = new Condition2(communicationLock);
+        listenCondition = new Condition2(communicationLock);
+        buffer = null; 
     }
 
     /**
@@ -27,6 +31,14 @@ public class Communicator {
      * @param	word	the integer to transfer.
      */
     public void speak(int word) {
+        //We begin by acquriing the lock
+        communicationLock.acquire(); 
+
+        while(buffer!=null) 
+            speakCondition.sleep();
+        this.buffer = word; 
+        listenCondition.wake(); 
+        communicationLock.release();
     }
 
     /**
@@ -36,6 +48,45 @@ public class Communicator {
      * @return	the integer transferred.
      */    
     public int listen() {
-	return 0;
+        int returnWord = 0; 
+        communicationLock.acquire();
+
+       // while(buffer!=null) listenCondition.sleep();
+        while(buffer == null){
+            listenCondition.sleep();
+        }
+
+        returnWord = buffer.intValue(); 
+        buffer = null; 
+        speakCondition.wake(); 
+        communicationLock.release();
+	    return returnWord;
     }
+
+    public Condition2 getSpeakCondition(){
+        return this.speakCondition; 
+    }
+    public Condition2 getListenCondition(){
+        return this.listenCondition; 
+    }
+    
+    public Lock returnLock(){
+        return communicationLock; 
+    }
+
+    public Integer returnBuffer(){
+        return this.buffer;
+    }
+
+    public int returnBufferValue(){
+        return this.buffer.intValue(); 
+    }
+    
+    //In this implementation, we are not using sempahores, but condition variables. Therefore, 
+    // we will be using Condition2 objects instead of Condition. We will have three conditions, 
+    // one for speaking, one for receiving, and one for listening. 
+    private Condition2 speakCondition; 
+    private Condition2 listenCondition;
+    private static Lock communicationLock; 
+    private Integer buffer; 
 }
