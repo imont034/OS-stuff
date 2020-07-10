@@ -48,7 +48,7 @@ public class Condition2
         wait.add(KThread.currentThread());
 
         //Have the thread sleep until another thread wakes it up using wake() 
-        KThread.sleep();
+        KThread.currentThread().sleep();
         conditionLock.acquire();
         
         //Restore interrupt back to the previous state 
@@ -73,18 +73,15 @@ public class Condition2
             KThread thread = wait.removeFirst();
             
             //If it is a viable thread, we wake up the thread 
-            if (thread != null)
-            {
-                thread.ready(); 
-            }
+            if (thread != null) thread.ready();
 
             //Restore interrupt into the specified state that was previously
             Machine.interrupt().restore(current_status);
         }
         //If the linked list of threads are empty, then we do not have 
         //any threads. Thus, there is no reason to wake up anything. Simply 
-        //return. 
-        else return; 
+        //return
+        else return;
     }
 
     /**
@@ -95,7 +92,7 @@ public class Condition2
         Lib.assertTrue(conditionLock.isHeldByCurrentThread());
         
         //Nothing to wake up
-        if (wait.isEmpty() || wait==null || wait.peek()==null) 
+        if (this.wait.isEmpty() || this.wait==null || this.wait.peek()==null)
             return;    
 
         //Wake up each thread iteratively within the linked list of threads 

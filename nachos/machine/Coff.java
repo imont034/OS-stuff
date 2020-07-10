@@ -12,9 +12,9 @@ public class Coff {
      * Allocate a new Coff object.
      */
     protected Coff() {
-	file = null;
-	entryPoint = 0;
-	sections = null;
+		file = null;
+		entryPoint = 0;
+		sections = null;
     }
     
     /**

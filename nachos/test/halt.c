@@ -12,9 +12,11 @@
 
 #include "syscall.h"
 
-int
-main()
+int main()
 {
+
     halt();
+
     /* not reached */
+    return 0;
 }

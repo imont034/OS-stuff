@@ -3,7 +3,7 @@ package nachos.userprog;
 import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
-
+import java.io.EOFException;
 /**
  * Provides a simple, synchronized interface to the machine's console. The
  * interface can also be accessed through <tt>OpenFile</tt> objects.
@@ -90,6 +90,11 @@ public class SynchConsole {
      */
     public OpenFile openForWriting() {
 	return new File(false, true);
+    }
+
+    public OpenFile standardError() {
+    	System.err.println("Exception thrown while accessing OpenFile file");
+    	return new File(false, false);
     }
 
     private void sendInterrupt() {

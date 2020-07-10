@@ -90,6 +90,7 @@ public class OpenFile {
      * Close this file and release any associated system resources.
      */
     public void close() {
+
     }
 
     /**

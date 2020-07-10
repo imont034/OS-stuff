@@ -276,28 +276,10 @@ public class KThread {
 
 	    Lib.debug(dbgThread, "Joining to thread: " + toString());
 	    Lib.assertTrue(this != currentThread);
-               
-        //Depict current status of this 
-        boolean current_status = Machine.interrupt().disable(); 
-        
-        
-        //We iterate while the thread is not finished, if it is, return.  
-        if (this.status != statusFinished){
-            /*
-            //Instantiate a queue to give the lock of this to transfer priority of this
-            ThreadQueue wait = ThreadedKernel.scheduler.newThreadQueue(true); 
-            wait.acquire(this);
-
-            //Wait for current thread, adding it to the queue 
-            wait.waitForAccess(currentThread);
-
-            //Yield this thread until the this is finished 
-            */
-            while(this.status != statusFinished) KThread.yield();
-            
-        } else return; 
-
-        //Restore the machine to where it was previously 
+        //disable interrupt since we are going into a critical section
+        boolean current_status = Machine.interrupt().disable();
+		while(this.status != statusFinished) KThread.yield();
+        //Restore the machine to where it was previously
         Machine.interrupt().restore(current_status);
     }
 

@@ -15,8 +15,9 @@ public class Communicator {
      */
     public Communicator() {
         communicationLock = new Lock(); 
-        speakCondition = new Condition2(communicationLock);
-        listenCondition = new Condition2(communicationLock);
+        speaker = new Condition2(communicationLock);
+        listener = new Condition2(communicationLock);
+        inAction = false;
         buffer = null; 
     }
 
@@ -31,13 +32,25 @@ public class Communicator {
      * @param	word	the integer to transfer.
      */
     public void speak(int word) {
-        //We begin by acquriing the lock
-        communicationLock.acquire(); 
+        //We begin by acquiring the lock
+        communicationLock.acquire();
 
-        while(buffer!=null) 
-            speakCondition.sleep();
-        this.buffer = word; 
-        listenCondition.wake(); 
+        boolean current_status = Machine.interrupt().disabled();
+
+        //While the buffer still has values in it, we take in the value for word
+        while(inAction && buffer !=null) speaker.sleep();
+
+        inAction = true;
+
+        //Assign the requested word to be sent out to the buffer
+        this.buffer = word;
+
+        //We then transfer the word to the listener
+        listener.wake();
+
+        Machine.interrupt().restore(current_status);
+
+        //Release the lock that was previously acquired
         communicationLock.release();
     }
 
@@ -48,45 +61,55 @@ public class Communicator {
      * @return	the integer transferred.
      */    
     public int listen() {
-        int returnWord = 0; 
+        //Begin by acquiring the lock
         communicationLock.acquire();
 
-       // while(buffer!=null) listenCondition.sleep();
-        while(buffer == null){
-            listenCondition.sleep();
-        }
+        boolean current_status = Machine.interrupt().disabled();
 
-        returnWord = buffer.intValue(); 
-        buffer = null; 
-        speakCondition.wake(); 
+        //returned message
+        int word = 0;
+
+        //We put the listener communicator to sleep while the speaking communicator is acquiring the word
+        while(!inAction && buffer == null)  listener.sleep();
+
+        inAction = false;
+
+        word=this.buffer;
+
+        speaker.wake();
+
+        //Release the lock that was previously acquired
         communicationLock.release();
-	    return returnWord;
+
+        Machine.interrupt().restore(current_status);
+
+        return word;
     }
 
-    public Condition2 getSpeakCondition(){
-        return this.speakCondition; 
-    }
-    public Condition2 getListenCondition(){
-        return this.listenCondition; 
-    }
-    
-    public Lock returnLock(){
-        return communicationLock; 
+    //getters and setters of our private variables
+    public Lock getLock(){
+        return communicationLock;
     }
 
-    public Integer returnBuffer(){
+    public Integer getBuffer(){
         return this.buffer;
     }
 
-    public int returnBufferValue(){
-        return this.buffer.intValue(); 
+    public int getBufferValue(){
+        return this.buffer;
     }
-    
-    //In this implementation, we are not using sempahores, but condition variables. Therefore, 
-    // we will be using Condition2 objects instead of Condition. We will have three conditions, 
-    // one for speaking, one for receiving, and one for listening. 
-    private Condition2 speakCondition; 
-    private Condition2 listenCondition;
-    private static Lock communicationLock; 
+
+    public Condition2 getSpeaker(){return this.speaker;}
+    public Condition2 getListener(){return this.listener;}
+    public boolean returnInAction(){return this.inAction; }
+
+
+    //In this implementation, we are not using semaphores, but condition variables. Therefore,
+    // we will be using Condition2 objects instead of Condition. We will have two different
+    //condition communicators. One for speaking and one for listening
+    private boolean inAction;
+    private final Condition2 speaker;
+    private final Condition2 listener;
+    private static Lock communicationLock;
     private Integer buffer; 
 }

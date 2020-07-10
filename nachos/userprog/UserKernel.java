@@ -75,11 +75,11 @@ public class UserKernel extends ThreadedKernel {
      * that caused the exception.
      */
     public void exceptionHandler() {
-	Lib.assertTrue(KThread.currentThread() instanceof UThread);
+		Lib.assertTrue(KThread.currentThread() instanceof UThread);
 
-	UserProcess process = ((UThread) KThread.currentThread()).process;
-	int cause = Machine.processor().readRegister(Processor.regCause);
-	process.handleException(cause);
+		UserProcess process = ((UThread) KThread.currentThread()).process;
+		int cause = Machine.processor().readRegister(Processor.regCause);
+		process.handleException(cause);
     }
 
     /**
@@ -109,6 +109,8 @@ public class UserKernel extends ThreadedKernel {
 
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
+	public static int pid;
+    public static UserProcess rootProcess;
 
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;

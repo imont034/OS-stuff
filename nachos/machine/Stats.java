@@ -18,6 +18,7 @@ public final class Stats {
      * Print out the statistics in this object.
      */
     public void print() {
+        /*
 	System.out.println("Ticks: total " + totalTicks
 			   + ", kernel " + kernelTicks
 			   + ", user " + userTicks);
@@ -29,6 +30,7 @@ public final class Stats {
 			   + ", TLB misses " + numTLBMisses);
 	System.out.println("Network I/O: received " + numPacketsReceived
 			   + ", sent " + numPacketsSent);
+        */
     }
 
     /**
