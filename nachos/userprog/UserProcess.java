@@ -640,9 +640,9 @@ public class UserProcess {
         this.arguments = new String[this.argc];
 
         //buffer to read virtual memory into
-        byte[] buffer = new byte[4];
+        byte[] buffer = new byte[4 * argc];
 
-		for(i =0; i < this.argc; i++){
+		for(i=0; i < this.argc; i++){
 			this.arguments[i] = readVirtualMemoryString(Lib.bytesToInt(buffer,0), MAXSTRINGLENGTH);
 			if(arguments[i] == null){
 				Lib.debug(dbgProcess, "handleExec: Error reading from virtual memory");
